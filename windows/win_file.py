@@ -44,16 +44,19 @@ options:
       - 'path for a Windows shortcut (only applies to c(state=shortcut))'
     required: false
     default: []
+    version_added: 2.2
   arguments:
     description:
       - 'arguments for a Windows shortcut (only applies to c(state=shortcut))'
     required: false
     default: []
+    version_added: 2.2
   working_directory:
     description:
       - 'working directory for a Windows shortcut (only applies to c(state=shortcut))'
     required: false
     default: []
+    version_added: 2.2
   state:
     description:
       - If C(directory), all immediate subdirectories will be created if they
