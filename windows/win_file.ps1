@@ -88,36 +88,38 @@ If (Test-Path $path)
             Fail-Json (New-Object psobject) "path is not a file"
         }
 
-        If ( $state -eq "shortcut" -and ( $fileinfo.PsIsContainer -or (-not ( $path -like "*.lnk" ) ) ) )
-        {
-            Fail-Json (New-Object psobject) "path is not a shortcut"
-        }
-        Else {
-            $sh = New-Object -COM WScript.Shell
-            $Shortcut = $sh.CreateShortcut($path)
-            If ( $target -ne $null -and $Shortcut.TargetPath -ne $target )
+        If ( $state -eq "shortcut" ) {
+            If ( $fileinfo.PsIsContainer -or (-not ( $path -like "*.lnk" ) ) ) )
             {
-               $oldTarget = $Shortcut.TargetPath
-               $Shortcut.TargetPath = $target
-               $Shortcut.Save()
-               $result.changed = $TRUE
-               $result.msg = "Changed target to $target from $oldTarget."
+                Fail-Json (New-Object psobject) "path is not a shortcut"
             }
-
-            If ( $argumentsList -ne $null -and $Shortcut.Arguments -ne $argumentsList )
-            {
-               $Shortcut.Arguments  = $argumentsList
-               $Shortcut.Save()
-               $result.changed = $TRUE
-               $result.msg = "Changed arguments."
-            }
-
-            If ( $workDir -ne $null -and $Shortcut.WorkingDirectory -ne $workDir )
-            {
-               $Shortcut.WorkingDirectory = $workDir
-               $Shortcut.Save()
-               $result.changed = $TRUE
-               $result.msg = "Changed working directory."
+            Else {
+                $sh = New-Object -COM WScript.Shell
+                $Shortcut = $sh.CreateShortcut($path)
+                If ( $target -ne $null -and $Shortcut.TargetPath -ne $target )
+                {
+                   $oldTarget = $Shortcut.TargetPath
+                   $Shortcut.TargetPath = $target
+                   $Shortcut.Save()
+                   $result.changed = $TRUE
+                   $result.msg = "Changed target to $target from $oldTarget."
+                }
+    
+                If ( $argumentsList -ne $null -and $Shortcut.Arguments -ne $argumentsList )
+                {
+                   $Shortcut.Arguments  = $argumentsList
+                   $Shortcut.Save()
+                   $result.changed = $TRUE
+                   $result.msg = "Changed arguments."
+                }
+    
+                If ( $workDir -ne $null -and $Shortcut.WorkingDirectory -ne $workDir )
+                {
+                   $Shortcut.WorkingDirectory = $workDir
+                   $Shortcut.Save()
+                   $result.changed = $TRUE
+                   $result.msg = "Changed working directory."
+                }
             }
         }
     }
