@@ -42,8 +42,13 @@ If ($path -eq $FALSE)
 # (originally was: state - file, link, directory, hard, touch, absent)
 
 $state = Get-Attr $params "state" "unspecified"
-# if state is not supplied, test the $path to see if it looks like 
+# if state is not supplied, test the $path to see if it looks like
 # a file or a folder and set state to file or folder
+
+# Get the target for a Windows shortcut
+$target = Get-Attr $params "target" $null
+$argumentsList = Get-Attr $params "arguments" $null
+$workDir = Get-Attr $params "working_directory" $null
 
 # result
 $result = New-Object psobject @{
@@ -67,7 +72,7 @@ If (Test-Path $path)
 {
     $fileinfo = Get-Item $path
     If ( $state -eq "absent" )
-    {   
+    {
         Remove-Item -Recurse -Force $fileinfo
         $result.changed = $TRUE
     }
@@ -82,6 +87,39 @@ If (Test-Path $path)
         {
             Fail-Json (New-Object psobject) "path is not a file"
         }
+
+        If ( $state -eq "shortcut" -and ( $fileinfo.PsIsContainer -or (-not ( $path -like "*.lnk" ) ) ) )
+        {
+            Fail-Json (New-Object psobject) "path is not a shortcut"
+        }
+        Else {
+            $sh = New-Object -COM WScript.Shell
+            $Shortcut = $sh.CreateShortcut($path)
+            If ( $target -ne $null -and $Shortcut.TargetPath -ne $target )
+            {
+               $oldTarget = $Shortcut.TargetPath
+               $Shortcut.TargetPath = $target
+               $Shortcut.Save()
+               $result.changed = $TRUE
+               $result.msg = "Changed target to $target from $oldTarget."
+            }
+
+            If ( $argumentsList -ne $null -and $Shortcut.Arguments -ne $argumentsList )
+            {
+               $Shortcut.Arguments  = $argumentsList
+               $Shortcut.Save()
+               $result.changed = $TRUE
+               $result.msg = "Changed arguments."
+            }
+
+            If ( $workDir -ne $null -and $Shortcut.WorkingDirectory -ne $workDir )
+            {
+               $Shortcut.WorkingDirectory = $workDir
+               $Shortcut.Save()
+               $result.changed = $TRUE
+               $result.msg = "Changed working directory."
+            }
+        }
     }
 }
 Else
@@ -90,7 +128,7 @@ Else
     If ( $state -eq "unspecified" )
     {
         $basename = Split-Path -Path $path -Leaf
-        If ($basename.length -gt 0) 
+        If ($basename.length -gt 0)
         {
            $state = "file"
         }
@@ -109,6 +147,17 @@ Else
     If ( $state -eq "file" )
     {
         Fail-Json (New-Object psobject) "path will not be created"
+    }
+
+    If ( $state -eq "shortcut" )
+    {
+        $sh = New-Object -comObject WScript.Shell
+        $Shortcut = $sh.CreateShortcut($path)
+        If ($target -ne $null) { $Shortcut.TargetPath = $target }
+        If ($argumentsList -ne $null) { $Shortcut.Arguments = $argumentsList }
+        If ($workDir -ne $null) { $Shortcut.WorkingDirectory = $workDir }
+        $Shortcut.Save()
+        $result.changed = $TRUE
     }
 }
 
