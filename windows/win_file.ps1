@@ -88,12 +88,14 @@ If (Test-Path $path)
             Fail-Json (New-Object psobject) "path is not a file"
         }
 
-        If ( $state -eq "shortcut" ) {
-            If ( $fileinfo.PsIsContainer -or (-not ( $path -like "*.lnk" ) ) ) )
+        If ( $state -eq "shortcut" ) 
+        {
+            If ( $fileinfo.PsIsContainer -or (-not ( $path -like "*.lnk" ) ) )
             {
                 Fail-Json (New-Object psobject) "path is not a shortcut"
             }
-            Else {
+            Else 
+            {
                 $sh = New-Object -COM WScript.Shell
                 $Shortcut = $sh.CreateShortcut($path)
                 If ( $target -ne $null -and $Shortcut.TargetPath -ne $target )
