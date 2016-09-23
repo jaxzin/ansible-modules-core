@@ -39,27 +39,43 @@ options:
     required: true
     default: []
     aliases: ['dest', 'name']
+  target:
+    description:
+      - 'path for a Windows shortcut (only applies to c(state=shortcut))'
+    required: false
+    default: []
+  arguments:
+    description:
+      - 'arguments for a Windows shortcut (only applies to c(state=shortcut))'
+    required: false
+    default: []
+  working_directory:
+    description:
+      - 'working directory for a Windows shortcut (only applies to c(state=shortcut))'
+    required: false
+    default: []
   state:
     description:
       - If C(directory), all immediate subdirectories will be created if they
         do not exist.
         If C(file), the file will NOT be created if it does not exist, see the M(copy)
-        or M(template) module if you want that behavior.  If C(absent),
+        or M(template) module if you want that behavior.  If C(shortcut), a Windows
+        shortcut will be created or changed, pointing to c(target).  If C(absent),
         directories will be recursively deleted, and files will be removed.
         If C(touch), an empty file will be created if the c(path) does not
         exist, while an existing file or directory will receive updated file access and
         modification times (similar to the way `touch` works from the command line).
     required: false
     default: file
-    choices: [ file, directory, touch, absent ]
+    choices: [ file, directory, shortcut, touch, absent ]
 '''
 
 EXAMPLES = '''
 # create a file
-- win_file: path=C:\\temp\\foo.conf 
+- win_file: path=C:\\temp\\foo.conf
 
 # touch a file (creates if not present, updates modification time if present)
-- win_file: path=C:\\temp\\foo.conf state=touch 
+- win_file: path=C:\\temp\\foo.conf state=touch
 
 # remove a file, if present
 - win_file: path=C:\\temp\\foo.conf state=absent
@@ -69,4 +85,7 @@ EXAMPLES = '''
 
 # remove directory structure
 - win_file: path=C:\\temp state=absent
+
+# chreate a shortcut
+- win_file: path=C:\\temp\\foo.lnk target='bar.exe' arguments='1 2 3' state=shortcut
 '''
